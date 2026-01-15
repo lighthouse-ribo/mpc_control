@@ -2,12 +2,19 @@ import threading
 import time
 from typing import List, Dict, Literal
 import numpy as np
-from .params import VehicleParams
-from .model import SimState, Control, TrackSettings
-from .twodof import derivatives as deriv_2dof
-from .dof_utils import body_to_world_2dof, body_to_world_3dof, curvature_4ws
-from .mpc import solve_mpc_kin_dyn_4dof
-from .threedof import (
+# 统一从 src.vehicle 包导入参数
+from src.vehicle import VehicleParams
+
+# 从具体的子模块导入类 (因为 __init__.py 可能没导出这些辅助类)
+from src.vehicle.model import SimState, Control, TrackSettings
+from src.vehicle.twodof import derivatives as deriv_2dof
+from src.vehicle.dof_utils import body_to_world_2dof, body_to_world_3dof, curvature_4ws
+
+# mpc 还在 src 下，保持不变或改为绝对引用
+from src.mpc import solve_mpc_kin_dyn_4dof
+
+# 从 src.vehicle.threedof 导入
+from src.vehicle.threedof import (
     Vehicle3DOF,
     State3DOF,
     allocate_drive,
