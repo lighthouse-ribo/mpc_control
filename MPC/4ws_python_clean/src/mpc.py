@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Dict, Tuple, Optional
-from .twodof import derivatives as deriv_2dof
+# 引用路径改为 src.vehicle.twodof
+from src.vehicle.twodof import derivatives as deriv_2dof  # <--- 修改这里
 
 
 def nearest_plan_index(plan: List[Dict[str, float]], x: float, y: float) -> int:

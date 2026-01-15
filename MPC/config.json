@@ -1,0 +1,39 @@
+{
+  "vehicle": {
+    "m": 35000.0,
+    "Iz": 500000.0,
+    "a": 8.0,
+    "b": 8.0,
+    "width": 3.4,
+    "track": 3.4,
+    "kf": 450000.0,
+    "kr": 450000.0,
+    "U": 2.2,
+    "mu": 0.85,
+    "g": 9.81,
+    "U_min": 0.001,
+    "U_blend": 0.3,
+    "tire_model": "pacejka"
+  },
+  "control": {
+    "dt": 0.02,
+    "k_v": 0.8,
+    "tau_ctrl": 0.15,
+    "tau_low": 0.25,
+    "tau_beta": 0.35,
+    "yaw_damp": 220.0,
+    "yaw_sat_gain": 3.0,
+    "drive_bias_front": 0.1,
+    "drive_bias_rear": 0.9,
+    "delta_rate_frac": 0.8,
+    "delta_max": 0.698131700797,
+    "U_switch": 8.0,
+    "phase_auto": false,
+    "mode": "2dof",
+    "track": {
+      "enabled": true,
+      "retention_sec": 30.0,
+      "max_points": 20000
+    }
+  }
+}

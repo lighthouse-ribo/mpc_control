@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask import send_from_directory
-from src.params import VehicleParams
+from src.vehicle import VehicleParams  # <--- 修改这里
 from src.sim import SimEngine
 from src.config import load_config, apply_config, current_config, save_config
 from src.planner import plan_quintic_xy, plan_circle_arc
