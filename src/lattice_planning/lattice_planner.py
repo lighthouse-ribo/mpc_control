@@ -234,18 +234,33 @@ class LatticePlanner:
         return s, d, d_d, d_dd, s_d, s_dd
 
     def _f2c(self, p, csp):
-        """Frenet 转 Cartesian"""
+        """Frenet 转 Cartesian (修复：增加终点线性外推)"""
+        # 获取参考线的最大 s 值
+        max_s = csp.s[-1]
+        
         # 批量计算参考线状态
-        # 为了效率，我们直接循环计算 (Python loop overhead is minimal for 50 points)
         for i in range(len(p.t)):
             s_val = p.s[i]
             d_val = p.d[i]
             
-            rx, ry = csp.calc_position(s_val)
-            ryaw = csp.calc_yaw(s_val)
-            rk = csp.calc_curvature(s_val)
+            if s_val <= max_s:
+                # 正常情况：在参考线范围内
+                rx, ry = csp.calc_position(s_val)
+                ryaw = csp.calc_yaw(s_val)
+                # rk = csp.calc_curvature(s_val) # 暂时不用，下面用数值微分算
+            else:
+                # [关键修复] 溢出情况：线性外推 (Linear Extrapolation)
+                # 避免 curves.py 内部 clamp 导致坐标重叠、梯度为0、曲率爆炸
+                ds = s_val - max_s
+                rx_end, ry_end = csp.calc_position(max_s)
+                ryaw_end = csp.calc_yaw(max_s)
+                
+                # 沿切线方向延伸
+                rx = rx_end + ds * math.cos(ryaw_end)
+                ry = ry_end + ds * math.sin(ryaw_end)
+                ryaw = ryaw_end # 航向角保持不变
             
-            # 坐标变换
+            # 坐标变换 (Frenet -> Global)
             x = rx - d_val * math.sin(ryaw)
             y = ry + d_val * math.cos(ryaw)
             
@@ -253,19 +268,20 @@ class LatticePlanner:
             p.y.append(y)
             
             # 航向角变换 (近似: yaw = ref_yaw + atan(d_d / s_d))
-            # 更精确的公式需要考虑曲率
+            # 注意：如果 s_d 为 0 (虽然极少见)，math.atan2 会处理
             yaw = ryaw + math.atan2(p.d_d[i], p.s_d[i])
             p.yaw.append(yaw)
             
-            # 曲率计算 (复杂公式，使用数值微分代替)
-            # k = (x'y'' - y'x'') / ...
-        
         # 使用数值微分补全 k (比复杂解析公式更稳健)
+        # 现在有了线性外推，x 和 y 不会重叠，gradient 计算将恢复正常
         dx = np.gradient(p.x)
         dy = np.gradient(p.y)
         ddx = np.gradient(dx)
         ddy = np.gradient(dy)
-        k = (dx * ddy - dy * ddx) / (np.hypot(dx, dy)**3 + 1e-6)
+        
+        # 增加极小值防止除零
+        den = np.hypot(dx, dy)**3 + 1e-6
+        k = (dx * ddy - dy * ddx) / den
         p.k = k.tolist()
 
     def _check_collision(self, p, grid, dist_m, res):
@@ -333,4 +349,5 @@ class LatticePlanner:
                 'a': p.a[i],
                 'k': p.k[i]
             })
+
         return traj
